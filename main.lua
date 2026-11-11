@@ -119,6 +119,7 @@ current_audio_chunk = 1
 duration = next_up[1]['duration']
 current_play_time = 0
 loaded_audio_chunks = {}
+playing_chunk = nil
 
 speaker = peripheral.find("speaker")
 
@@ -152,6 +153,7 @@ local function update_loop()
             duration = next_up[1]['duration']
             current_play_time = 0
             loaded_audio_chunks = {}
+            playing_chunk = nil
 
         end
 
