@@ -19,6 +19,30 @@ local function get_playlist_info(playlist_url)
     return videos
 end
 
+local function format_time(time, max_time)
+    formatted_time = ''
+    if max_time == nil then
+        max_time = time
+    end
+    local hours = math.floor(time / 3600)
+    local minutes = math.floor((time % 3600) / 60)
+    local seconds = math.floor(time % 60)
+
+    local max_hours = math.floor(time / 3600)
+    local max_minutes = math.floor((time % 3600) / 60)
+    local max_seconds = math.floor(time % 60)
+
+    if max_hours > 1 then
+        formatted_time = formatted_time..hours..':'
+    end
+    if max_minutes > 1 then
+        formatted_time = formatted_time..minutes..':'
+    end
+    if max_seconds > 1 then
+        formatted_time = formatted_time..seconds..':'
+    end
+    return formatted_time
+end
 
 width, height = term.getSize()
 server_url = args[1]
@@ -37,7 +61,14 @@ while true do
     last_chec_unix = os.clock()
     current_play_time = current_play_time + delta
     progress = current_play_time / duration
-    local filled = math.floor(progress * width - 2)
+
+    local progress_numbers = format_time(current_play_time, duration)..'/'..format_time(duration)
+    local progress_bar_offset = #progress_numbers + 2
+    local filled = math.floor(progress * (width - progress_bar_offset))
+
+
+
+
     if filled ~= last_fill_progress_bar then
         changed = true
         last_fill_progress_bar = filled
@@ -50,11 +81,11 @@ while true do
     -- print(textutils.serialize(list_info))
 
     if changed == true then
-        print(filled, width)
         changed = false
         term.clear()
         term.setCursorPos(1, 1)
-        print('['..string.rep("\127", filled)..string.rep("\128", ((width-2)-filled))..']')
+        print(filled, width, progress_bar_offset)
+        print('['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers)
     end
     sleep(0.1)
 end
