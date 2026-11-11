@@ -176,7 +176,7 @@ local function update_loop()
             print(progress_print)
             middle_symbol = paused and '\16' or '\124 \124'
             print(next_up[1]['title'])
-            print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
+            print(' <'..string.rep(' ', width/2-2)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
             print(current_audio_chunk)
 
         end
