@@ -216,19 +216,18 @@ local function key_loop()
     end
 end
 
+prefetch_amount = 5
 local function downloader()
     while true do
         
-    if current_audio_chunk ~= 1 then
+        if current_audio_chunk ~= 1 then
             loaded_audio_chunks[current_audio_chunk-1] = nil
         end
-
-        if loaded_audio_chunks[current_audio_chunk] == nil then
-            loaded_audio_chunks[current_audio_chunk] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
-        end
-        if current_audio_chunk < #audio_chunk_look_ups then
-            if loaded_audio_chunks[current_audio_chunk+1] == nil then
-                loaded_audio_chunks[current_audio_chunk+1] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
+        for i = 0, prefetch_amount do
+            if current_audio_chunk+i < #audio_chunk_look_ups then
+                if loaded_audio_chunks[current_audio_chunk+i] == nil then
+                    loaded_audio_chunks[current_audio_chunk+i] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+i], current_audio_chunk+i)
+                end
             end
         end
         current_audio_chunk = math.floor(current_play_time / 2) + 1    
