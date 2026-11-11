@@ -219,8 +219,8 @@ local function key_loop()
             if paused then
                 speaker.stop()
                 if playing_chunk then
-                    current_audio_chunk = playing_chunk
-                    current_play_time = (playing_chunk - 2) * 2
+                    current_audio_chunk = math.max(1, playing_chunk - 1)
+                    current_play_time = (current_audio_chunk - 1) * 2
                 end
                 os.queueEvent("speaker_audio_empty")
             end
