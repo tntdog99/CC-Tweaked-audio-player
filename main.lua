@@ -60,10 +60,14 @@ changed = true
 last_progress_printr = ''
 
 while true do
-    delta = os.clock()-last_chec_unix
+    local delta = os.clock()-last_chec_unix
     last_chec_unix = os.clock()
-    current_play_time = current_play_time + delta
-    progress = current_play_time / duration
+
+    -- only update progress while umpaused
+    if paused == false then
+        current_play_time = current_play_time + delta
+        progress = current_play_time / duration
+    end
 
     local progress_numbers = ' '..format_time(current_play_time, duration)..'/'..format_time(duration)
     local progress_bar_offset = #progress_numbers + 2
