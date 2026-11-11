@@ -111,7 +111,6 @@ last_progress_printr = ''
 audio_chunk_look_ups = {}
 loaded_audio_chunks = {}
 current_audio_chunk = 1
-last_audio_chunk = -1
 
 next_up = get_playlist_info(current_video_url)
 audio_chunk_look_ups = get_chunked_dur(next_up[1])
@@ -199,10 +198,6 @@ local function audio_loop()
             if not paused then
                 playing_chunk = current_audio_chunk
                 current_audio_chunk = current_audio_chunk + 1
-                if last_audio_chunk ~= current_audio_chunk then
-                    last_audio_chunk = current_audio_chunk
-                    current_play_time = current_audio_chunk * 2
-                end
             end
         else
             sleep(0.05)
@@ -235,9 +230,6 @@ prefetch_amount = 3
 local function downloader()
     while true do
         
-        if current_audio_chunk ~= 1 then
-            loaded_audio_chunks[current_audio_chunk-1] = nil
-        end
         if current_audio_chunk > 2 then
             loaded_audio_chunks[current_audio_chunk-2] = nil
         end
