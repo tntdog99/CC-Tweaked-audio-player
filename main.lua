@@ -274,7 +274,7 @@ end
 local function pre_fetch()
     while true do
         
-        download_chunk(next_up[2]['url'], 0, 2)
+        download_chunk(next_up[2]['url'], {0,2}, 0)
         
         sleep(10)
     end
