@@ -42,7 +42,7 @@ local function get_playlist_info(playlist_url)
     end
     local videos = http_resp.readAll()
     http_resp.close()
-    return textutils.unserialize(videos)
+    return textutils.unserializeJSON(videos)
 end
 
 local function get_next_url(playlist_url)
@@ -54,7 +54,7 @@ local function get_next_url(playlist_url)
     end
     local next_url = http_resp.readAll()
     http_resp.close()
-    return textutils.unserialize(next_url)
+    return textutils.unserializeJSON(next_url)
 end
 
 local function download_chunk(url, chunk_stuff, chunk_id)
@@ -175,12 +175,12 @@ while true do
     end
 
     if loaded_audio_chunks[chunk_key] == nil then
-        loaded_audio_chunks[chunk_key] = download_chunk(next_up[1], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
+        loaded_audio_chunks[chunk_key] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
     end
     if current_audio_chunk < #audio_chunk_look_ups then
         next_chunk_key = textutils.serialize(audio_chunk_look_ups[current_audio_chunk+1])
         if loaded_audio_chunks[next_chunk_key] == nil then
-            loaded_audio_chunks[next_chunk_key] = download_chunk(next_up[1], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
+            loaded_audio_chunks[next_chunk_key] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
         end
     end
     current_audio_chunk = math.floor(current_play_time / 15) + 1    
