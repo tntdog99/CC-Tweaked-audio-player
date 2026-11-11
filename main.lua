@@ -27,17 +27,17 @@ progress = 0.0
 next_up = {}
 current_video_url = ''
 current_play_time = 0
-last_chec_unix = os.time()
+last_chec_unix = os.clock()
 duration = 350
 changed = true
 last_fill_progress_bar = -1
 
 while true do
-    delta = os.time()-last_chec_unix
-    last_chec_unix = os.time()
+    delta = os.clock()-last_chec_unix
+    last_chec_unix = os.clock()
     current_play_time = current_play_time + delta
-    progress = duration/current_play_time
-    filled = math.floor((progress/width))
+    progress = current_play_time / duration
+    local filled = math.floor((progress/width))-2
     if filled ~= last_fill_progress_bar then
         changed = true
         last_fill_progress_bar = filled
@@ -50,9 +50,11 @@ while true do
     -- print(textutils.serialize(list_info))
 
     if changed == true then
+        print(filled, width)
         changed = false
         term.clear()
         term.setCursorPos(1, 1)
         print('['..string.rep("\128", filled)..string.rep("\127", (width-filled))..']')
     end
+    sleep(0.1)
 end
