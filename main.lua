@@ -180,6 +180,7 @@ local function update_loop()
             print(current_audio_chunk)
 
         end
+        sleep(0.05)
     end
 end
 
@@ -204,7 +205,7 @@ local function key_loop()
     while true do
         sleep(0.1)
         local event, key, is_held = os.pullEvent("key")
-        if key == string.byte(" ") then
+        if key == keys.space then
             paused = not paused
         end
     end
