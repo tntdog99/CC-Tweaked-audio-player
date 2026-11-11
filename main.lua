@@ -54,7 +54,7 @@ while true do
         changed = false
         term.clear()
         term.setCursorPos(1, 1)
-        print('['..string.rep("\128", filled)..string.rep("\127", (width-filled))..']')
+        print('['..string.rep("\127", filled)..string.rep("\128", ((width-2)-filled))..']')
     end
     sleep(0.1)
 end
