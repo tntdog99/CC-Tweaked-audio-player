@@ -15,12 +15,14 @@ local function get_playlist_info(playlist_url)
     request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
     print(http.checkURL(request_url))
     http_resp, error = http.get(request_url)
-    videos = http_resp.read()
-    print(textutils.serialize(videos))
+    videos = http_resp.readAll()
+    return videos
 end
 
 server_url = args[1]
 
 
 print('running')
-get_playlist_info(args[2])
+
+list_info = get_playlist_info(args[2])
+print(textutils.serialize(list_info))
