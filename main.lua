@@ -220,7 +220,7 @@ local function key_loop()
                 speaker.stop()
                 if playing_chunk then
                     current_audio_chunk = playing_chunk
-                    current_play_time = (playing_chunk - 1) * 2
+                    current_play_time = (playing_chunk - 2) * 2
                 end
                 os.queueEvent("speaker_audio_empty")
             end
