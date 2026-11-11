@@ -112,7 +112,6 @@ audio_chunk_look_ups = {}
 loaded_audio_chunks = {}
 current_audio_chunk = 1
 last_audio_chunk = -1
-new_track = true
 
 next_up = get_playlist_info(current_video_url)
 audio_chunk_look_ups = get_chunked_dur(next_up[1])
@@ -121,7 +120,6 @@ duration = next_up[1]['duration']
 current_play_time = 0
 loaded_audio_chunks = {}
 
-dfpwm_decoder = nil
 speaker = peripheral.find("speaker")
 
 
@@ -154,7 +152,6 @@ local function update_loop()
             duration = next_up[1]['duration']
             current_play_time = 0
             loaded_audio_chunks = {}
-            new_track = true
 
         end
 
@@ -173,7 +170,6 @@ local function update_loop()
             changed = false
             term.clear()
             term.setCursorPos(1, 1)
-            print(filled, width, progress_bar_offset)
             print(progress_print)
             middle_symbol = paused and '\16' or '\124 \124'
             print(next_up[1]['title'])
@@ -185,24 +181,26 @@ local function update_loop()
     end
 end
 
+local playing_chunk = nil
+
 local function audio_loop()
     while true do
-        if new_track == true then
-            new_track = false
-            dfpwm_decoder = dfpwm.make_decoder()
-        end
-
         local chunk = loaded_audio_chunks[current_audio_chunk]
         if paused == false and chunk ~= nil then
-            local decoded = dfpwm_decoder(chunk)
-            while not speaker.playAudio(decoded) do
+            local decoder = dfpwm.make_decoder() 
+            local decoded = decoder(chunk)
+
+            while not paused and not speaker.playAudio(decoded) do
                 os.pullEvent("speaker_audio_empty")
             end
-            current_audio_chunk = current_audio_chunk + 1
 
-            if last_audio_chunk ~= current_audio_chunk then
-                last_audio_chunk = current_audio_chunk
-                current_play_time = current_audio_chunk * 2
+            if not paused then
+                playing_chunk = current_audio_chunk
+                current_audio_chunk = current_audio_chunk + 1
+                if last_audio_chunk ~= current_audio_chunk then
+                    last_audio_chunk = current_audio_chunk
+                    current_play_time = current_audio_chunk * 2
+                end
             end
         else
             sleep(0.05)
@@ -210,15 +208,26 @@ local function audio_loop()
     end
 end
 
+
 local function key_loop()
     while true do
-        sleep(0.05)
         local event, key, is_held = os.pullEvent("key")
         if key == keys.space then
             paused = not paused
+            if paused then
+                speaker.stop()
+                if playing_chunk then
+                    current_audio_chunk = playing_chunk
+                    current_play_time = (playing_chunk - 1) * 2
+                end
+                os.queueEvent("speaker_audio_empty")
+            end
         end
     end
 end
+
+
+
 
 prefetch_amount = 3
 local function downloader()
@@ -226,6 +235,9 @@ local function downloader()
         
         if current_audio_chunk ~= 1 then
             loaded_audio_chunks[current_audio_chunk-1] = nil
+        end
+        if current_audio_chunk > 2 then
+            loaded_audio_chunks[current_audio_chunk-2] = nil
         end
         for i = 0, prefetch_amount do
             if current_audio_chunk+i <= #audio_chunk_look_ups then
