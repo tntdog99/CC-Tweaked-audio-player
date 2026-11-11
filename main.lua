@@ -13,8 +13,18 @@ end
 
 local function get_playlist_info(playlist_url)
     local request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
-    print(http.checkURL(request_url))
-    http_resp, error = http.get(request_url)
+    worked, http_error = http.checkURL(request_url)
+    if worked == false then
+        print('HTTP ERROR: '..http_error)
+        return {}
+    end
+    
+    
+    http_resp, http_error = http.get(request_url)
+    if http_resp == nil then
+        print('HTTP ERROR: '..http_error)
+        return {}
+    end
     videos = http_resp.readAll()
     return videos
 end
@@ -80,6 +90,8 @@ while true do
         term.setCursorPos(1, 1)
         print(filled, width, progress_bar_offset)
         print(progress_print)
+        middle_symbol = paused and '\16' or '\124 \124'
+        print('<'..string.rep(' ', width/3-1)..middle_symbol..string.rep(' ', width/3-1-#middle_symbol)..'>')
     end
-    sleep(0.1)
+    sleep(0.05)
 end
