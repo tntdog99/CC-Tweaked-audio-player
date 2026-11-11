@@ -199,6 +199,11 @@ local function audio_loop()
                 os.pullEvent("speaker_audio_empty")
             end
             current_audio_chunk = current_audio_chunk + 1
+
+            if last_audio_chunk ~= current_audio_chunk then
+                last_audio_chunk = current_audio_chunk
+                current_play_time = current_audio_chunk * 2
+            end
         else
             sleep(0.05)
         end
