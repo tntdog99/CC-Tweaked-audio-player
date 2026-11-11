@@ -104,7 +104,7 @@ progress = 0.0
 next_up = {args[2]}
 current_video_url = args[2]
 current_play_time = 0
-last_chec_unix = os.clock()
+last_chec_unix = os.epoch("utc")/1000
 duration = -1
 changed = true
 last_progress_printr = ''
@@ -126,8 +126,8 @@ speaker = peripheral.find("speaker")
 
 local function update_loop()
     while true do
-        local delta = os.clock()-last_chec_unix
-        last_chec_unix = os.clock()
+        local delta = os.epoch("utc")/1000-last_chec_unix
+        last_chec_unix = os.epoch("utc")/1000
 
         -- only update progress while umpaused
         if paused == false then
@@ -201,13 +201,14 @@ local function audio_loop()
                     os.pullEvent("speaker_audio_empty")
                 end
             end
+            current_audio_chunk = math.floor(current_play_time / 2) + 1    
         end
     end
 end
 
 local function key_loop()
     while true do
-        sleep(0.1)
+        sleep(0.05)
         local event, key, is_held = os.pullEvent("key")
         if key == keys.space then
             paused = not paused
@@ -215,7 +216,7 @@ local function key_loop()
     end
 end
 
-prefetch_amount = 0
+prefetch_amount = 3
 local function downloader()
     while true do
         
@@ -223,13 +224,12 @@ local function downloader()
             loaded_audio_chunks[current_audio_chunk-1] = nil
         end
         for i = 0, prefetch_amount do
-            if current_audio_chunk+i < #audio_chunk_look_ups then
+            if current_audio_chunk+i <= #audio_chunk_look_ups then
                 if loaded_audio_chunks[current_audio_chunk+i] == nil then
                     loaded_audio_chunks[current_audio_chunk+i] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+i], current_audio_chunk+i)
                 end
             end
         end
-        current_audio_chunk = math.floor(current_play_time / 2) + 1    
         sleep(0.05)
     end
 
