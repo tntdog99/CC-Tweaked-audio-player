@@ -13,6 +13,7 @@ end
 
 local function get_playlist_info(playlist_url)
     http_resp = http.get(server_url..'read_videos/'..url_encode(playlist_url))
+    print(http_resp)
     print(http_resp.read())
 end
 
