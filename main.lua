@@ -28,20 +28,13 @@ local function format_time(time, max_time)
     local minutes = math.floor((time % 3600) / 60)
     local seconds = math.floor(time % 60)
 
-    local max_hours = math.floor(time / 3600)
-    local max_minutes = math.floor((time % 3600) / 60)
-    local max_seconds = math.floor(time % 60)
-
-    if max_hours > 1 then
-        formatted_time = formatted_time..hours..':'
+    if max_time >= 3600 then
+        return string.format("%d:%02d:%02d", hours, minutes, seconds)
+    else if max_time >= 60 then
+        return string.format("%d:%02d", minutes, seconds)
+    else
+        return string.format("%d", seconds)
     end
-    if max_minutes > 1 then
-        formatted_time = formatted_time..minutes..':'
-    end
-    if max_seconds > 1 then
-        formatted_time = formatted_time..seconds..''
-    end
-    return formatted_time
 end
 
 width, height = term.getSize()
