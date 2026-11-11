@@ -15,10 +15,8 @@ local function get_playlist_info(playlist_url)
     request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
     print(http.checkURL(request_url))
     http_resp, error = http.get(request_url)
-
-    print(error)
-    print(http_resp)
-    print(http_resp.read())
+    videos = http_resp.read()
+    print(textutils.serialize(videos))
 end
 
 server_url = args[1]
