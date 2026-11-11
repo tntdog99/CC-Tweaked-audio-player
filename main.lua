@@ -118,7 +118,7 @@ audio_chunk_look_ups = get_chunked_dur(next_up[1])
 current_audio_chunk = 1
 duration = next_up[1]['duration']
 current_play_time = 0
-
+loaded_audio_chunks = {}
 
 dfpwm_decoder = nil
 speaker = peripheral.find("speaker")
@@ -152,6 +152,7 @@ local function update_loop()
             current_audio_chunk = 1
             duration = next_up[1]['duration']
             current_play_time = 0
+            loaded_audio_chunks = {}
             new_track = true
 
         end
@@ -193,9 +194,13 @@ local function audio_loop()
             dfpwm_decoder = dfpwm.make_decoder()
         end
         if paused == false then
-            local decoded = dfpwm_decoder(loaded_audio_chunks[current_audio_chunk])
-            while not speaker.playAudio(decoded) do
-                os.pullEvent("speaker_audio_empty")
+            if loaded_audio_chunks[current_audio_chunk] == nil then
+                sleep(1)
+            else
+                local decoded = dfpwm_decoder(loaded_audio_chunks[current_audio_chunk])
+                while not speaker.playAudio(decoded) do
+                    os.pullEvent("speaker_audio_empty")
+                end
             end
         end
     end
