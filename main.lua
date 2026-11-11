@@ -175,8 +175,9 @@ local function update_loop()
             print(progress_print)
             middle_symbol = paused and '\16' or '\124 \124'
             print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
-            print(textutils.serialize(next_up))
             print(textutils.serialize(current_video_url))
+            print(textutils.serialize(audio_chunk_look_ups))
+
 
         end
 
