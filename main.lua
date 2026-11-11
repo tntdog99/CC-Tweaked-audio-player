@@ -12,7 +12,7 @@ local function url_encode(str)
 end
 
 local function get_playlist_info(playlist_url)
-    request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
+    local request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
     print(http.checkURL(request_url))
     http_resp, error = http.get(request_url)
     videos = http_resp.readAll()
@@ -37,7 +37,7 @@ while true do
     last_chec_unix = os.clock()
     current_play_time = current_play_time + delta
     progress = current_play_time / duration
-    local filled = math.floor((progress/width))-2
+    local filled = math.floor(progress * width - 2)
     if filled ~= last_fill_progress_bar then
         changed = true
         last_fill_progress_bar = filled
