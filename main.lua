@@ -29,18 +29,30 @@ current_video_url = ''
 current_play_time = 0
 last_chec_unix = os.time()
 duration = 350
+changed = true
+last_fill_progress_bar = -1
+
 while true do
     delta = os.time()-last_chec_unix
     last_chec_unix = os.time()
     current_play_time = current_play_time + delta
     progress = duration/current_play_time
     filled = math.floor((progress/width))
-
-    print('['..string.rep("\128", filled)..string.rep("\127", (width-filled))..']')
+    if filled ~= last_fill_progress_bar then
+        changed = true
+        last_fill_progress_bar = filled
+    end
 
 
     -- print('running')
 
     -- list_info = get_playlist_info(args[2])
     -- print(textutils.serialize(list_info))
+
+    if changed == true then
+        changed = false
+        term.clear()
+        term.setCursorPos(1, 1)
+        print('['..string.rep("\128", filled)..string.rep("\127", (width-filled))..']')
+    end
 end
