@@ -111,6 +111,7 @@ last_progress_printr = ''
 audio_chunk_look_ups = {}
 loaded_audio_chunks = {}
 current_audio_chunk = 1
+last_audio_chunk = -1
 new_track = true
 
 next_up = get_playlist_info(current_video_url)
@@ -186,22 +187,20 @@ end
 
 local function audio_loop()
     while true do
-        sleep(0.05)
-
         if new_track == true then
             new_track = false
             dfpwm_decoder = dfpwm.make_decoder()
         end
-        if paused == false then
-            if loaded_audio_chunks[current_audio_chunk] == nil then
-                sleep(1)
-            else
-                local decoded = dfpwm_decoder(loaded_audio_chunks[current_audio_chunk])
-                while not speaker.playAudio(decoded) do
-                    os.pullEvent("speaker_audio_empty")
-                end
+
+        local chunk = loaded_audio_chunks[current_audio_chunk]
+        if paused == false and chunk ~= nil then
+            local decoded = dfpwm_decoder(chunk)
+            while not speaker.playAudio(decoded) do
+                os.pullEvent("speaker_audio_empty")
             end
-            current_audio_chunk = math.floor(current_play_time / 2) + 1    
+            current_audio_chunk = current_audio_chunk + 1
+        else
+            sleep(0.05)
         end
     end
 end
