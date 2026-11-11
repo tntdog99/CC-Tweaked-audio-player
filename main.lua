@@ -220,6 +220,30 @@ local function key_loop()
                 os.queueEvent("speaker_audio_empty")
             end
         end
+        if key == keys.left then
+            if current_audio_chunk == 1 then
+                
+            else
+                current_audio_chunk = current_audio_chunk - 2
+            end
+        end
+        if key == keys.right then
+            if current_audio_chunk == audio_chunk_look_ups[#audio_chunk_look_ups] then
+                current_video_url = get_next_url(current_video_url)
+                if current_video_url == nil then
+                    break
+                end
+                next_up = get_playlist_info(current_video_url)
+                audio_chunk_look_ups = get_chunked_dur(next_up[1])
+                current_audio_chunk = 1
+                duration = next_up[1]['duration']
+                current_play_time = 0
+                loaded_audio_chunks = {}
+                playing_chunk = nil
+            else
+                current_audio_chunk = current_audio_chunk + 2
+            end
+        end
     end
 end
 
