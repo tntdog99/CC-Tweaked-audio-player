@@ -216,7 +216,7 @@ local function key_loop()
     end
 end
 
-prefetch_amount = 5
+prefetch_amount = 0
 local function downloader()
     while true do
         
