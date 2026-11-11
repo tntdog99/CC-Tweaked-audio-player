@@ -206,7 +206,7 @@ local function audio_loop()
             dfpwm_decoder = dfpwm.make_decoder()
         end
         if paused == false then
-            local decoded = decoder(loaded_audio_chunks[current_audio_chunk])
+            local decoded = dfpwm_decoder(loaded_audio_chunks[current_audio_chunk])
             while not speaker.playAudio(decoded) do
                 os.pullEvent("speaker_audio_empty")
             end
