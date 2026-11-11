@@ -91,7 +91,7 @@ while true do
         print(filled, width, progress_bar_offset)
         print(progress_print)
         middle_symbol = paused and '\16' or '\124 \124'
-        print('<'..string.rep(' ', width/3-1)..middle_symbol..string.rep(' ', width/3-1-#middle_symbol)..'>')
+        print('<'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-1-#middle_symbol)..'>')
     end
     sleep(0.05)
 end
