@@ -19,10 +19,27 @@ local function get_playlist_info(playlist_url)
     return videos
 end
 
+
+width, height = term.getSize()
 server_url = args[1]
+paused = true
+progress = 0.0
+next_up = {}
+current_video_url = ''
+current_play_time = 0
+last_chec_unix = os.time()
+duration = 350
+while true:
+    delta = os.time()-last_chec_unix
+    last_chec_unix = os.time()
+    current_play_time = current_play_time + delta
+    progress = duration/current_play_time
+    filled = math.floor((progress/width))
+
+    print('['..'▓'*filled..'░'*(width-filled)..']')
 
 
-print('running')
+    -- print('running')
 
-list_info = get_playlist_info(args[2])
-print(textutils.serialize(list_info))
+    -- list_info = get_playlist_info(args[2])
+    -- print(textutils.serialize(list_info))
