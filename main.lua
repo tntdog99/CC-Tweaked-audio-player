@@ -177,7 +177,7 @@ local function update_loop()
             print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
             print(textutils.serialize(current_video_url))
             print(textutils.serialize(audio_chunk_look_ups))
-
+            print(current_audio_chunk)
 
         end
 
