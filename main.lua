@@ -182,7 +182,7 @@ local function update_loop()
     end
 end
 
-local playing_chunk = nil
+playing_chunk = nil
 
 local function audio_loop()
     while true do
@@ -225,7 +225,7 @@ local function key_loop()
                 
             else
                 speaker.stop()
-                current_audio_chunk = math.max(1, playing_chunk - 2)
+                current_audio_chunk = math.max(1, playing_chunk - 3)
                 current_play_time = (current_audio_chunk - 1) * 2
 
                 os.queueEvent("speaker_audio_empty")
@@ -234,7 +234,7 @@ local function key_loop()
         if key == keys.right then
             speaker.stop()
             current_audio_chunk = math.max(1, playing_chunk + 2)
-            current_play_time = (current_audio_chunk - 1) * 2
+            current_play_time = (current_audio_chunk - 1) * 3
             os.queueEvent("speaker_audio_empty")
         end
     end
