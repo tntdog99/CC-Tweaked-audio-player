@@ -11,5 +11,13 @@ local function url_encode(str)
     return str
 end
 
+local function get_playlist_info(playlist_url)
+    http_resp = http.get(server_url+url_encode(playlist_url))
+    print(http_resp.read())
+end
+
+server_url = args[1]
+
+
 print('running')
-print(url_encode(args[1]))
+get_playlist_info(args[2])
