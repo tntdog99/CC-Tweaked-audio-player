@@ -11,4 +11,4 @@ local function url_encode(str)
     return str
 end
 
-url_encode(args[1])
+print(url_encode(args[1]))
