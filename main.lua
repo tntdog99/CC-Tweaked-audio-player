@@ -39,7 +39,7 @@ local function format_time(time, max_time)
         formatted_time = formatted_time..minutes..':'
     end
     if max_seconds > 1 then
-        formatted_time = formatted_time..seconds..':'
+        formatted_time = formatted_time..seconds..''
     end
     return formatted_time
 end
@@ -54,7 +54,7 @@ current_play_time = 0
 last_chec_unix = os.clock()
 duration = 350
 changed = true
-last_fill_progress_bar = -1
+last_progress_printr = ''
 
 while true do
     delta = os.clock()-last_chec_unix
@@ -62,16 +62,17 @@ while true do
     current_play_time = current_play_time + delta
     progress = current_play_time / duration
 
-    local progress_numbers = format_time(current_play_time, duration)..'/'..format_time(duration)
+    local progress_numbers = ' '..format_time(current_play_time, duration)..'/'..format_time(duration)
     local progress_bar_offset = #progress_numbers + 2
     local filled = math.floor(progress * (width - progress_bar_offset))
+    local progress_print = '['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers
 
 
 
 
-    if filled ~= last_fill_progress_bar then
+    if progress_print ~= last_progress_printr then
         changed = true
-        last_fill_progress_bar = filled
+        last_progress_printr = progress_print
     end
 
 
@@ -85,7 +86,7 @@ while true do
         term.clear()
         term.setCursorPos(1, 1)
         print(filled, width, progress_bar_offset)
-        print('['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers)
+        print(progress_print)
     end
     sleep(0.1)
 end
