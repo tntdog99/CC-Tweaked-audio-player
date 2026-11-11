@@ -36,7 +36,7 @@ while true do
     progress = duration/current_play_time
     filled = math.floor((progress/width))
 
-    print('['..string.rep('▓', filled)..string.rep('░', (width-filled))..']')
+    print('['..string.rep("\128", filled)..string.rep("\127", (width-filled))..']')
 
 
     -- print('running')
