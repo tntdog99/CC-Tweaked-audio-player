@@ -30,7 +30,7 @@ local function format_time(time, max_time)
 
     if max_time >= 3600 then
         return string.format("%d:%02d:%02d", hours, minutes, seconds)
-    else if max_time >= 60 then
+    elseif max_time >= 60 then
         return string.format("%d:%02d", minutes, seconds)
     else
         return string.format("%d", seconds)
