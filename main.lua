@@ -11,4 +11,5 @@ local function url_encode(str)
     return str
 end
 
+print('running')
 print(url_encode(args[1]))
