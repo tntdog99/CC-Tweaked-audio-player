@@ -271,6 +271,14 @@ local function downloader()
     end
 
 end
+local function pre_fetch()
+    while true do
+        
+        download_chunk(next_up[2]['url'], 0, 2)
+        
+        sleep(10)
+    end
 
-parallel.waitForAny(audio_loop, update_loop, key_loop, downloader)
+end
+parallel.waitForAny(audio_loop, update_loop, key_loop, downloader, pre_fetch)
 print('Done')
