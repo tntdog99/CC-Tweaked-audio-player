@@ -74,8 +74,8 @@ end
 
 local function get_chunked_dur(video_details)
     local chunks = {}
-    for chunk = 0, video_details['duration'], 15 do
-        table.insert(chunks, {chunk, chunk+15})
+    for chunk = 0, video_details['duration'], 5 do
+        table.insert(chunks, {chunk, chunk+5})
     end
     return chunks
 end
