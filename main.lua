@@ -147,7 +147,14 @@ local function update_loop()
             if current_video_url == nil then
                 break
             end
-            next_up = get_playlist_info(current_video_url)
+            local updated_playlist = get_playlist_info(current_video_url)
+            if not updated_playlist or not updated_playlist[1] then
+                break
+            end
+            seek_id = seek_id + 1
+            speaker.stop()
+            os.queueEvent("speaker_audio_empty")
+            next_up = updated_playlist
             audio_chunk_look_ups = get_chunked_dur(next_up[1])
             current_audio_chunk = 1
             duration = next_up[1]['duration']
@@ -196,7 +203,7 @@ local function audio_loop()
             local decoder = dfpwm.make_decoder() 
             local decoded = decoder(chunk)
 
-            while not paused and not speaker.playAudio(decoded) do
+            while not paused and current_seek == seek_id and not speaker.playAudio(decoded) do
                 os.pullEvent("speaker_audio_empty")
             end
 
@@ -234,7 +241,7 @@ local function key_loop()
             else
                 seek_id = seek_id + 1
                 speaker.stop()
-                current_audio_chunk = math.max(1, playing_chunk - 3)
+                current_audio_chunk = math.max(1, playing_chunk - 2)
                 current_play_time = (current_audio_chunk - 1) * 2
 
                 os.queueEvent("speaker_audio_empty")
@@ -273,8 +280,12 @@ local function downloader()
 end
 local function pre_fetch()
     while true do
+        if next_up[2] ~= nil then
+            download_chunk(next_up[2]['url'], {0,2}, 0)
+        else
+            sleep(60)
+        end
         
-        download_chunk(next_up[2]['url'], {0,2}, 0)
         
         sleep(10)
     end
