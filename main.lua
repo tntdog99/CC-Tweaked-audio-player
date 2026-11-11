@@ -74,8 +74,8 @@ end
 
 local function get_chunked_dur(video_details)
     local chunks = {}
-    for chunk = 0, video_details['duration'], 5 do
-        table.insert(chunks, {chunk, chunk+5})
+    for chunk = 0, video_details['duration'], 1 do
+        table.insert(chunks, {chunk, chunk+1})
     end
     return chunks
 end
@@ -180,28 +180,11 @@ local function update_loop()
             print(current_audio_chunk)
 
         end
-
-
-        if current_audio_chunk ~= 1 then
-            loaded_audio_chunks[current_audio_chunk-1] = nil
-        end
-
-        if loaded_audio_chunks[current_audio_chunk] == nil then
-            loaded_audio_chunks[current_audio_chunk] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
-        end
-        if current_audio_chunk < #audio_chunk_look_ups then
-            if loaded_audio_chunks[current_audio_chunk+1] == nil then
-                loaded_audio_chunks[current_audio_chunk+1] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
-            end
-        end
-        current_audio_chunk = math.floor(current_play_time / 15) + 1    
-        sleep(0.05)
     end
 end
 
 local function audio_loop()
     while true do
-        sleep(0.05)
         if new_track == true then
             new_track = false
             dfpwm_decoder = dfpwm.make_decoder()
@@ -225,5 +208,26 @@ local function key_loop()
     end
 end
 
-parallel.waitForAny(audio_loop, update_loop, key_loop)
+local function downloader()
+    while true do
+        
+    if current_audio_chunk ~= 1 then
+            loaded_audio_chunks[current_audio_chunk-1] = nil
+        end
+
+        if loaded_audio_chunks[current_audio_chunk] == nil then
+            loaded_audio_chunks[current_audio_chunk] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
+        end
+        if current_audio_chunk < #audio_chunk_look_ups then
+            if loaded_audio_chunks[current_audio_chunk+1] == nil then
+                loaded_audio_chunks[current_audio_chunk+1] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
+            end
+        end
+        current_audio_chunk = math.floor(current_play_time / 1) + 1    
+        sleep(0.05)
+    end
+
+end
+
+parallel.waitForAny(audio_loop, update_loop, key_loop, downloader)
 print('Done')
