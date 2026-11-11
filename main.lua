@@ -1,4 +1,7 @@
 local args = {...}
+
+dfpwm = require('cc.audio.dfpwm')
+
 local function url_encode(str)
     if str == nil then
         return ""
@@ -108,82 +111,117 @@ last_progress_printr = ''
 audio_chunk_look_ups = {}
 loaded_audio_chunks = {}
 current_audio_chunk = 1
+new_track = true
 
 next_up = get_playlist_info(current_video_url)
 audio_chunk_look_ups = get_chunked_dur(next_up[1])
 current_audio_chunk = 1
 duration = next_up[1]['duration']
 current_play_time = 0
-while true do
-    local delta = os.clock()-last_chec_unix
-    last_chec_unix = os.clock()
-
-    -- only update progress while umpaused
-    if paused == false then
-        current_play_time = current_play_time + delta
-        progress = current_play_time / duration
-    end
-
-    local progress_numbers = ' '..format_time(current_play_time, duration)..'/'..format_time(duration)
-    local progress_bar_offset = #progress_numbers + 2
-    local filled = math.floor(progress * (width - progress_bar_offset))
-    local progress_print = '['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers
 
 
-    -- update current video
-    if current_play_time > duration then
-        current_video_url = get_next_url(current_video_url)
-        if current_video_url == nil then
-            break
+dfpwm_decoder = nil
+speaker = peripheral.find("speaker")
+
+
+local function update_loop()
+    while true do
+        local delta = os.clock()-last_chec_unix
+        last_chec_unix = os.clock()
+
+        -- only update progress while umpaused
+        if paused == false then
+            current_play_time = current_play_time + delta
+            progress = current_play_time / duration
         end
-        next_up = get_playlist_info(current_video_url)
-        audio_chunk_look_ups = get_chunked_dur(next_up[1])
-        current_audio_chunk = 1
-        duration = next_up[1]['duration']
-        current_play_time = 0
 
-    end
-
-    if progress_print ~= last_progress_printr then
-        changed = true
-        last_progress_printr = progress_print
-    end
+        local progress_numbers = ' '..format_time(current_play_time, duration)..'/'..format_time(duration)
+        local progress_bar_offset = #progress_numbers + 2
+        local filled = math.floor(progress * (width - progress_bar_offset))
+        local progress_print = '['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers
 
 
-    -- print('running')
+        -- update current video
+        if current_play_time > duration then
+            current_video_url = get_next_url(current_video_url)
+            if current_video_url == nil then
+                break
+            end
+            next_up = get_playlist_info(current_video_url)
+            audio_chunk_look_ups = get_chunked_dur(next_up[1])
+            current_audio_chunk = 1
+            duration = next_up[1]['duration']
+            current_play_time = 0
+            new_track = true
 
-    -- list_info = get_playlist_info(args[2])
-    -- print(textutils.serialize(list_info))
-
-    if changed == true then
-        changed = false
-        term.clear()
-        term.setCursorPos(1, 1)
-        print(filled, width, progress_bar_offset)
-        print(progress_print)
-        middle_symbol = paused and '\16' or '\124 \124'
-        print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
-        print(textutils.serialize(next_up))
-        print(textutils.serialize(current_video_url))
-
-    end
-
-
-    chunk_key = textutils.serialize(audio_chunk_look_ups[current_audio_chunk])
-    if current_audio_chunk ~= 1 then
-        loaded_audio_chunks[textutils.serialize(audio_chunk_look_ups[current_audio_chunk-1])] = nil
-    end
-
-    if loaded_audio_chunks[chunk_key] == nil then
-        loaded_audio_chunks[chunk_key] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
-    end
-    if current_audio_chunk < #audio_chunk_look_ups then
-        next_chunk_key = textutils.serialize(audio_chunk_look_ups[current_audio_chunk+1])
-        if loaded_audio_chunks[next_chunk_key] == nil then
-            loaded_audio_chunks[next_chunk_key] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
         end
+
+        if progress_print ~= last_progress_printr then
+            changed = true
+            last_progress_printr = progress_print
+        end
+
+
+        -- print('running')
+
+        -- list_info = get_playlist_info(args[2])
+        -- print(textutils.serialize(list_info))
+
+        if changed == true then
+            changed = false
+            term.clear()
+            term.setCursorPos(1, 1)
+            print(filled, width, progress_bar_offset)
+            print(progress_print)
+            middle_symbol = paused and '\16' or '\124 \124'
+            print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
+            print(textutils.serialize(next_up))
+            print(textutils.serialize(current_video_url))
+
+        end
+
+
+        if current_audio_chunk ~= 1 then
+            loaded_audio_chunks[current_audio_chunk-1] = nil
+        end
+
+        if loaded_audio_chunks[current_audio_chunk] == nil then
+            loaded_audio_chunks[current_audio_chunk] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
+        end
+        if current_audio_chunk < #audio_chunk_look_ups then
+            if loaded_audio_chunks[current_audio_chunk+1] == nil then
+                loaded_audio_chunks[current_audio_chunk+1] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
+            end
+        end
+        current_audio_chunk = math.floor(current_play_time / 15) + 1    
+        sleep(0.05)
     end
-    current_audio_chunk = math.floor(current_play_time / 15) + 1    
-    sleep(0.05)
 end
+
+local function audio_loop()
+    while true do
+        if new_track == true then
+            new_track = false
+            dfpwm_decoder = dfpwm.make_decoder()
+        end
+        if paused == false then
+            local decoded = decoder(loaded_audio_chunks[current_audio_chunk])
+            while not speaker.playAudio(decoded) do
+                os.pullEvent("speaker_audio_empty")
+            end
+        end
+    end
+end
+
+local function key_loop()
+    while true do
+        sleep(0.1)
+        local event, key, is_held = os.pullEvent("key")
+        if key == string.byte(" ") then
+            paused = not paused
+        end
+    end
+end
+
+parallel.waitForAny(audio_loop, update_loop, key_loop)
 print('Done')
