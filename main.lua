@@ -74,8 +74,8 @@ end
 
 local function get_chunked_dur(video_details)
     local chunks = {}
-    for chunk = 0, video_details['duration'], 1 do
-        table.insert(chunks, {chunk, chunk+1})
+    for chunk = 0, video_details['duration'], 2 do
+        table.insert(chunks, {chunk, chunk+2})
     end
     return chunks
 end
@@ -231,7 +231,7 @@ local function downloader()
                 loaded_audio_chunks[current_audio_chunk+1] = download_chunk(next_up[1]['url'], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
             end
         end
-        current_audio_chunk = math.floor(current_play_time / 1) + 1    
+        current_audio_chunk = math.floor(current_play_time / 2) + 1    
         sleep(0.05)
     end
 
