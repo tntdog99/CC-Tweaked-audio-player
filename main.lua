@@ -11,26 +11,73 @@ local function url_encode(str)
     return str
 end
 
-local function get_playlist_info(playlist_url)
-    local request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
-    worked, http_error = http.checkURL(request_url)
+local function safe_http(url, headers, binary)
+    if headers == nil then 
+        headers = nil
+    end
+    if binary == nil then 
+        binary = false
+    end
+
+    local worked, http_error = http.checkURL(url)
     if worked == false then
         print('HTTP ERROR: '..http_error)
-        return {}
+        return false, {}
     end
     
-    
-    http_resp, http_error = http.get(request_url)
+    local http_resp, http_error = http.get(url, headers, binary)
     if http_resp == nil then
         print('HTTP ERROR: '..http_error)
-        return {}
+        return false, {}
     end
-    videos = http_resp.readAll()
-    return videos
+    return true, http_resp
+end
+
+local function get_playlist_info(playlist_url)
+    local request_url = server_url .. 'read_videos?video_url=' .. url_encode(playlist_url)
+
+    local worked, http_resp = safe_http(request_url)
+    if worked == false then
+        return nil
+    end
+    local videos = http_resp.readAll()
+    http_resp.close()
+    return textutils.unserialize(videos)
+end
+
+local function get_next_url(playlist_url)
+    local request_url = server_url .. 'next_url?video_url=' .. url_encode(playlist_url)
+
+    local worked, http_resp = safe_http(request_url)
+    if worked == false then
+        return nil
+    end
+    local next_url = http_resp.readAll()
+    http_resp.close()
+    return textutils.unserialize(next_url)
+end
+
+local function download_chunk(url, chunk_stuff, chunk_id)
+    local request_url = server_url .. 'chunk_download?video_url=' .. url_encode(url) ..'&start_time='..chunk_stuff[1]..'&end_time='..chunk_stuff[2]
+
+    local worked, http_resp = safe_http(request_url, nil, true)
+    if worked == false then
+        return nil
+    end
+    local dfpwm_data = http_resp.readAll()
+    http_resp.close()
+    return dfpwm_data
+end
+
+local function get_chunked_dur(video_details)
+    local chunks = {}
+    for chunk = 0, video_details['duration'], 15 do
+        table.insert(chunks, {chunk, chunk+15})
+    end
+    return chunks
 end
 
 local function format_time(time, max_time)
-    formatted_time = ''
     if max_time == nil then
         max_time = time
     end
@@ -52,13 +99,21 @@ server_url = args[1]
 paused = true
 progress = 0.0
 next_up = {}
-current_video_url = ''
+current_video_url = args[2]
 current_play_time = 0
 last_chec_unix = os.clock()
-duration = 350
+duration = -1
 changed = true
 last_progress_printr = ''
+audio_chunk_look_ups = {}
+loaded_audio_chunks = {}
+current_audio_chunk = 1
 
+next_up = get_playlist_info(current_video_url)
+audio_chunk_look_ups = get_chunked_dur(next_up[1])
+current_audio_chunk = 1
+duration = next_up[1]['duration']
+current_play_time = 0
 while true do
     local delta = os.clock()-last_chec_unix
     last_chec_unix = os.clock()
@@ -75,7 +130,19 @@ while true do
     local progress_print = '['..string.rep("\127", filled)..string.rep("\128", ((width-progress_bar_offset)-filled))..']'..progress_numbers
 
 
+    -- update current video
+    if current_play_time > duration then
+        current_video_url = get_next_url(current_video_url)
+        if current_video_url == nil then
+            break
+        end
+        next_up = get_playlist_info(current_video_url)
+        audio_chunk_look_ups = get_chunked_dur(next_up[1])
+        current_audio_chunk = 1
+        duration = next_up[1]['duration']
+        current_play_time = 0
 
+    end
 
     if progress_print ~= last_progress_printr then
         changed = true
@@ -95,7 +162,28 @@ while true do
         print(filled, width, progress_bar_offset)
         print(progress_print)
         middle_symbol = paused and '\16' or '\124 \124'
-        print('<'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-1-#middle_symbol)..'>')
+        print(' <'..string.rep(' ', width/2-1)..middle_symbol..string.rep(' ', width/2-2-#middle_symbol)..'>')
+        print(textutils.serialize(next_up))
+        print(textutils.serialize(current_video_url))
+
     end
+
+
+    chunk_key = textutils.serialize(audio_chunk_look_ups[current_audio_chunk])
+    if current_audio_chunk ~= 1 then
+        loaded_audio_chunks[textutils.serialize(audio_chunk_look_ups[current_audio_chunk-1])] = nil
+    end
+
+    if loaded_audio_chunks[chunk_key] == nil then
+        loaded_audio_chunks[chunk_key] = download_chunk(next_up[1], audio_chunk_look_ups[current_audio_chunk], current_audio_chunk)
+    end
+    if current_audio_chunk < #audio_chunk_look_ups then
+        next_chunk_key = textutils.serialize(audio_chunk_look_ups[current_audio_chunk+1])
+        if loaded_audio_chunks[next_chunk_key] == nil then
+            loaded_audio_chunks[next_chunk_key] = download_chunk(next_up[1], audio_chunk_look_ups[current_audio_chunk+1], current_audio_chunk+1)
+        end
+    end
+    current_audio_chunk = math.floor(current_play_time / 15) + 1    
     sleep(0.05)
 end
+print('Done')
