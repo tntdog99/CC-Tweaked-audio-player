@@ -200,6 +200,7 @@ end
 
 local function audio_loop()
     while true do
+        sleep(0.05)
         if new_track == true then
             new_track = false
             dfpwm_decoder = dfpwm.make_decoder()
