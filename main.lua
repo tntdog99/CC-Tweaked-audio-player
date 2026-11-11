@@ -100,6 +100,7 @@ end
 width, height = term.getSize()
 server_url = args[1]
 paused = true
+seek_id = 0
 progress = 0.0
 next_up = {args[2]}
 current_video_url = args[2]
@@ -188,6 +189,10 @@ local function audio_loop()
     while true do
         local chunk = loaded_audio_chunks[current_audio_chunk]
         if paused == false and chunk ~= nil then
+
+            local current_seek = seek_id
+            local current_index = current_audio_chunk
+            
             local decoder = dfpwm.make_decoder() 
             local decoded = decoder(chunk)
 
@@ -195,9 +200,9 @@ local function audio_loop()
                 os.pullEvent("speaker_audio_empty")
             end
 
-            if not paused then
-                playing_chunk = current_audio_chunk
-                current_audio_chunk = current_audio_chunk + 1
+            if not paused and current_seek == seek_id then
+                playing_chunk = current_index
+                current_audio_chunk = current_index + 1
             end
         else
             sleep(0.05)
@@ -206,12 +211,15 @@ local function audio_loop()
 end
 
 
+
+
 local function key_loop()
     while true do
         local event, key, is_held = os.pullEvent("key")
         if key == keys.space then
             paused = not paused
             if paused then
+                seek_id = seek_id + 1
                 speaker.stop()
                 if playing_chunk then
                     current_audio_chunk = math.max(1, playing_chunk - 1)
@@ -224,6 +232,7 @@ local function key_loop()
             if current_audio_chunk == 1 then
                 
             else
+                seek_id = seek_id + 1
                 speaker.stop()
                 current_audio_chunk = math.max(1, playing_chunk - 3)
                 current_play_time = (current_audio_chunk - 1) * 2
@@ -232,6 +241,7 @@ local function key_loop()
             end
         end
         if key == keys.right then
+            seek_id = seek_id + 1
             speaker.stop()
             current_audio_chunk = math.max(1, playing_chunk + 2)
             current_play_time = (current_audio_chunk - 1) * 3
