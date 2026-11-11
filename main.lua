@@ -29,7 +29,7 @@ current_video_url = ''
 current_play_time = 0
 last_chec_unix = os.time()
 duration = 350
-while true:
+while true do
     delta = os.time()-last_chec_unix
     last_chec_unix = os.time()
     current_play_time = current_play_time + delta
@@ -43,3 +43,4 @@ while true:
 
     -- list_info = get_playlist_info(args[2])
     -- print(textutils.serialize(list_info))
+end
