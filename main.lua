@@ -114,8 +114,6 @@ loaded_audio_chunks = {}
 current_audio_chunk = 1
 
 next_up = get_playlist_info(current_video_url)
-print(textutils.serialize(next_up[1]))
-sleep(10)
 audio_chunk_look_ups = get_chunked_dur(next_up[1])
 current_audio_chunk = 1
 duration = next_up[1]['duration']
