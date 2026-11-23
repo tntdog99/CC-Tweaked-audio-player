@@ -122,6 +122,42 @@ loaded_audio_chunks = {}
 playing_chunk = nil
 
 speaker = peripheral.find("speaker")
+speakers = {peripheral.find("speaker")}
+
+local function stop_speakers()
+    for _, speaker in ipairs(speakers) do
+        speaker.stop()
+    end
+end
+
+local function play_on_all(decoded, current_seek)
+    local pending = {}
+    for i = 1, #speakers do
+        pending[i] = true
+    end
+
+    while not paused and current_seek == seek_id do
+        local any_pending = false
+        -- checks for any speaker pending audio, 
+        for i, speaker in ipairs(speakers) do
+            if pending[i] then
+                if speaker.playAudio(decoded) then
+                    pending[i] = false
+                else
+                    any_pending = true
+                end
+            end
+        end
+
+        if not any_pending then
+            return true
+        end
+
+        os.pullEvent("speaker_audio_empty")
+    end
+
+    return false
+end
 
 
 local function update_loop()
@@ -152,7 +188,7 @@ local function update_loop()
                 break
             end
             seek_id = seek_id + 1
-            speaker.stop()
+            stop_speakers()
             os.queueEvent("speaker_audio_empty")
             next_up = updated_playlist
             audio_chunk_look_ups = get_chunked_dur(next_up[1])
@@ -203,11 +239,9 @@ local function audio_loop()
             local decoder = dfpwm.make_decoder() 
             local decoded = decoder(chunk)
 
-            while not paused and current_seek == seek_id and not speaker.playAudio(decoded) do
-                os.pullEvent("speaker_audio_empty")
-            end
-
-            if not paused and current_seek == seek_id then
+            if play_on_all(decoded, current_seek)
+                and not paused
+                and current_seek == seek_id then
                 playing_chunk = current_index
                 current_audio_chunk = current_index + 1
             end
@@ -227,7 +261,7 @@ local function key_loop()
             paused = not paused
             if paused then
                 seek_id = seek_id + 1
-                speaker.stop()
+                stop_speakers()
                 if playing_chunk then
                     current_audio_chunk = math.max(1, playing_chunk - 1)
                     current_play_time = (current_audio_chunk - 1) * 2
@@ -240,7 +274,7 @@ local function key_loop()
                 
             else
                 seek_id = seek_id + 1
-                speaker.stop()
+                stop_speakers()
                 current_audio_chunk = math.max(1, playing_chunk - 2)
                 current_play_time = (current_audio_chunk - 1) * 2
 
@@ -249,7 +283,7 @@ local function key_loop()
         end
         if key == keys.right then
             seek_id = seek_id + 1
-            speaker.stop()
+            stop_speakers()
             current_audio_chunk = math.max(1, playing_chunk + 2)
             current_play_time = (current_audio_chunk - 1) * 3
             os.queueEvent("speaker_audio_empty")
