@@ -97,7 +97,7 @@ local function format_time(time, max_time)
     end
 end
 
-starting_video_url = input('url: ')
+starting_video_url = read('url: ')
 
 settings.define("ipod.server_url", {
     description = "the url to pull video data from, eg https://turtleserver.org/audio-player/ it must have a trailing slash",
